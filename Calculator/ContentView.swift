@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Foundation
 
 /* Buttons to be displayed. */
 enum CalcButton: String {
@@ -40,6 +41,10 @@ enum CalcButton: String {
     }
 }
 
+enum Operation {
+    case add, subtract, divide, multiply, none
+}
+
 // the color blue color
 let mainColor = Color.init(red: 0, green: 116/255, blue: 178/255, opacity: 1.0)
 
@@ -49,6 +54,9 @@ struct ContentView: View {
     // Variables for input and output
     @State var input = "0"
     @State var output = "0"
+    
+    @State var runningNum = 0
+    @State var currentOp: Operation = .none
     
     let buttons: [[CalcButton]] = [
         [.clear, .subtract, .add, .divide],
@@ -92,14 +100,14 @@ struct ContentView: View {
                         HStack(spacing: 12) {
                             ForEach(row, id: \.self) {item in
                                 Button(action: {
-                                    
+                                    self.compute(button: item)
                                 }, label: {
                                     Text(item.rawValue)
                                         .font(.system(size: 30))
-                                        .frame(width: self.buttonWidth(item: item), height: self.buttonHeight())
+                                        .frame(width: self.buttonHeight(), height: self.buttonHeight())
                                         .background(item.buttonColor)
                                         .foregroundColor(.white)
-                                        .cornerRadius(self.buttonWidth(item: item)/2)
+                                        .cornerRadius(self.buttonHeight()/2)
                                         .overlay(RoundedRectangle(cornerRadius: 50).stroke(mainColor, lineWidth: 1))
                                 })
                                 
@@ -113,8 +121,78 @@ struct ContentView: View {
             Spacer()
         }
     }
-    func buttonWidth(item: CalcButton) -> CGFloat {
-        return (UIScreen.main.bounds.width - (5*12)) / 4
+    
+    func compute(button: CalcButton) {
+        switch button {
+        case .add, .subtract, .divide, .multiply, .sin, .cos, .tan, .equal:
+            doOperation(button: button)
+        case .clear:
+            self.input = "0"
+            self.output = "0"
+        case .decimal:
+            break
+        default:
+            let number = button.rawValue
+            //if self.runningNum != 0 {
+               // self.input = number
+           // }
+            if self.input == "0" {
+                self.input = number
+            }
+            else {
+                self.input = "\(self.input)\(number)"
+            }
+        }
+    }
+    func doOperation(button: CalcButton) {
+        if button == .add {
+            self.currentOp = .add
+            self.runningNum = Int(self.input) ?? 0
+        }
+        else if button == .subtract {
+            self.currentOp = .subtract
+            self.runningNum = Int(self.input) ?? 0
+        }
+        else if button == .divide {
+            self.currentOp = .divide
+            self.runningNum = Int(self.input) ?? 0
+        }
+        else if button == .multiply {
+            self.currentOp = .multiply
+            self.runningNum = Int(self.input) ?? 0
+        }
+        else if button == .sin {
+            let input = Double(self.input) ?? 0.0
+            self.output = "\(sin(input))"
+        }
+        else if button == .cos {
+            let input = Double(self.input) ?? 0.0
+            self.output = "\(cos(input))"
+        }
+        else if button == .tan {
+            let input = Double(self.input) ?? 0.0
+            self.output = "\(tan(input))"
+        }
+        else if button == .equal {
+            let runningInput = self.runningNum
+            let currentInput = Int(self.input) ?? 0
+            switch self.currentOp {
+            case .add: self.output = "\(runningInput + currentInput)"
+            case .subtract: self.output = "\(runningInput - currentInput)"
+            case .divide: self.output = "\(runningInput / currentInput)"
+            case .multiply: self.output = "\(runningInput * currentInput)"
+            case .none:
+                break
+            }
+            self.runningNum = 0
+            
+        }
+        
+        
+        if button != .equal {
+            self.input = "0"
+        }
+        
     }
     func buttonHeight() -> CGFloat {
         return (UIScreen.main.bounds.width - (5*12)) / 4
